@@ -21,6 +21,7 @@ import org.vertx.java.core.Handler;
 import org.vertx.java.core.buffer.Buffer;
 import org.vertx.java.core.impl.Context;
 import org.vertx.java.core.impl.VertxInternal;
+import org.vertx.java.core.json.JsonObject;
 import org.vertx.java.core.net.impl.ConnectionBase;
 import org.vertx.java.core.streams.ReadStream;
 import org.vertx.java.core.streams.WriteStream;
@@ -48,6 +49,16 @@ public abstract class NetSocket extends ConnectionBase implements ReadStream, Wr
    */
   public final String writeHandlerID;
 
+  /**
+   * Version of writeBuffer that can take a JsonObject instead of Buffer object.
+   *
+   * This will simply convert the JsonObject into a Buffer object and call writeBuffer(Buffer data)
+   * @param data JsonObject of data.
+   */
+  public void writeBuffer(JsonObject data) {
+    writeBuffer(convertJsonObjectToBuffer(data));
+  }
+
   /** {@inheritDoc} */
   public abstract void writeBuffer(Buffer data);
 
@@ -56,6 +67,14 @@ public abstract class NetSocket extends ConnectionBase implements ReadStream, Wr
    * @return A reference to this, so multiple method calls can be chained.
    */
   public abstract NetSocket write(Buffer data);
+
+  /**
+   * Write a {@link JsonObject} to the request body. Simply converts JsonObject to Buffer and calls write(Buffer data)
+   * @return A reference to this, so multiple method calls can be chained.
+   */
+  public NetSocket write(JsonObject data) {
+    return write(convertJsonObjectToBuffer(data));
+  }
 
   /**
    * Write a {@link String} to the connection, encoded in UTF-8.
@@ -109,6 +128,9 @@ public abstract class NetSocket extends ConnectionBase implements ReadStream, Wr
   /** {@inheritDoc} */
   public abstract void drainHandler(Handler<Void> drainHandler);
 
-
+  private Buffer convertJsonObjectToBuffer(JsonObject jsonObject) {
+    String messageString = jsonObject.toString() + "\n";
+    return new Buffer(messageString);
+  }
 }
 

@@ -16,6 +16,7 @@
 
 package org.vertx.groovy.core.net
 
+import org.vertx.java.core.json.JsonObject
 import org.vertx.java.core.net.NetSocket as JNetSocket
 
 import org.vertx.groovy.core.buffer.Buffer
@@ -49,12 +50,29 @@ class NetSocket implements ReadStream, WriteStream {
   }
 
   /**
+   * Version of writeBuffer that can take a JsonObject instead of Buffer object.
+   *
+   * This will simply convert the JsonObject into a Buffer object and call writeBuffer(Buffer data)
+   * @param data JsonObject of data.
+   */
+  void writeBuffer(JsonObject data) {
+    write(convertJsonObjectToBuffer(data))
+  }
+  /**
    * Write a {@link Buffer} to the request body.<p>
    * @return A reference to this, so multiple method calls can be chained.
    */
   NetSocket write(Buffer data) {
     jSocket.write(data.toJavaBuffer())
     this
+  }
+
+  /**
+   * Write a {@link JsonObject} to the request body. Simply converts JsonObject to Buffer and calls write(Buffer data)
+   * @return A reference to this, so multiple method calls can be chained.
+   */
+  public NetSocket write(JsonObject data) {
+    return write(convertJsonObjectToBuffer(data))
   }
 
   /**
@@ -191,7 +209,10 @@ class NetSocket implements ReadStream, WriteStream {
     jSocket.closedHandler(handler as Handler)
   }
 
-
+  private Buffer convertJsonObjectToBuffer(JsonObject jsonObject) {
+    String messageString = jsonObject.toString() + "\n";
+    return new Buffer(messageString);
+  }
 
 
 }
